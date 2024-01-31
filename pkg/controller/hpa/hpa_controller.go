@@ -143,11 +143,11 @@ func (v *HPAController) syncHPA(key string) error {
 		for key, value := range annotationsMaps {
 			hpaCopyed.Annotations[key] = value
 		}
-	}
 
-	_, err = v.client.AutoscalingV2().HorizontalPodAutoscalers(hpaCopyed.Namespace).Update(context.Background(), hpaCopyed, metav1.UpdateOptions{})
-	if err != nil {
-		return err
+		_, err = v.client.AutoscalingV2().HorizontalPodAutoscalers(hpaCopyed.Namespace).Update(context.Background(), hpaCopyed, metav1.UpdateOptions{})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -171,6 +171,15 @@ func (v *HPAController) handleErr(err error, key interface{}) {
 }
 
 func (v *HPAController) annotations(hpa *v2.HorizontalPodAutoscaler) map[string]string {
+	if hpa.Annotations != nil {
+		if _, exist := hpa.Annotations[CpuTargetUtilizationKey]; exist {
+			return nil
+		}
+		if _, exist := hpa.Annotations[MemoryTargetValueKey]; exist {
+			return nil
+		}
+	}
+
 	if len(hpa.Spec.Metrics) == 0 {
 		return nil
 	}
