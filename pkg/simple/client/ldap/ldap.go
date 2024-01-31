@@ -38,7 +38,7 @@ const (
 	ldapAttributeCommonName       = "cn"
 	ldapAttributeSerialNumber     = "sn"
 	ldapAttributeUserID           = "uid"
-	ldapAttributeMail             = "mail"
+	ldapAttributeMail             = "personalMail"
 	ldapAttributeUserPassword     = "userPassword"
 	ldapAttributeDescription      = "description"
 	ldapAttributeCreateTimestamp  = "createTimestamp"

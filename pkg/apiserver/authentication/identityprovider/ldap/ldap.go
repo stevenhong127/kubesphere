@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-ldap/ldap"
@@ -166,11 +167,26 @@ func (l ldapProvider) Authenticate(username string, password string) (identitypr
 		return nil, err
 	}
 	email := entry.GetAttributeValue(l.MailAttribute)
-	uid := entry.GetAttributeValue(l.LoginAttribute)
+	//uid := entry.GetAttributeValue(l.LoginAttribute)
+	uid := parseUidFromDN(entry.DN)
+
 	return &ldapIdentity{
 		Username: uid,
 		Email:    email,
 	}, nil
+}
+
+func parseUidFromDN(dn string) string {
+	ss := strings.Split(dn, ",")
+
+	for _, kv := range ss {
+		kvs := strings.Split(kv, "=")
+		if len(kvs) == 2 && "uid" == kvs[0] {
+			return kvs[1]
+		}
+	}
+
+	return ""
 }
 
 func (l *ldapProvider) newConn() (*ldap.Conn, error) {

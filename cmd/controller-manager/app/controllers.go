@@ -18,6 +18,7 @@ package app
 
 import (
 	"fmt"
+	"kubesphere.io/kubesphere/pkg/controller/hpa"
 	"time"
 
 	"github.com/kubesphere/pvc-autoresizer/runners"
@@ -321,12 +322,18 @@ func addAllControllers(mgr manager.Manager, client k8s.Client, informerFactory i
 		}
 	}
 
+	// "hpa" controller
+	if cmOptions.IsControllerEnabled("hpa") {
+		hpaController := hpa.NewHPAController(kubernetesInformer.Autoscaling().V2().HorizontalPodAutoscalers(), client.Kubernetes())
+		addController(mgr, "hpa", hpaController)
+	}
+
 	// "job" controller
 	if cmOptions.IsControllerEnabled("job") {
 		jobController := job.NewJobController(kubernetesInformer.Batch().V1().Jobs(), client.Kubernetes())
 		addController(mgr, "job", jobController)
 	}
-
+	kubernetesInformer.Autoscaling().V2().HorizontalPodAutoscalers()
 	// "storagecapability" controller
 	if cmOptions.IsControllerEnabled("storagecapability") {
 		storageCapabilityController := capability.NewController(
