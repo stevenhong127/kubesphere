@@ -175,22 +175,6 @@ func (r *Reconciler) bindWorkspace(ctx context.Context, logger logr.Logger, name
 }
 
 func (r *Reconciler) unbindWorkspace(ctx context.Context, logger logr.Logger, namespace *corev1.Namespace, workspace *tenantv1alpha1.Workspace) error {
-	if !metav1.IsControlledBy(namespace, workspace) {
-		namespace := namespace.DeepCopy()
-		namespace.OwnerReferences = k8sutil.RemoveWorkspaceOwnerReference(namespace.OwnerReferences)
-		if err := controllerutil.SetControllerReference(workspace, namespace, scheme.Scheme); err != nil {
-			logger.Error(err, "set controller reference failed")
-			return err
-		}
-		logger.V(4).Info("update namespace owner reference", "workspace", workspace.Name)
-		if err := r.Update(ctx, namespace); err != nil {
-			logger.Error(err, "update namespace failed")
-			return err
-		}
-
-		return nil
-	}
-
 	_, hasWorkspaceLabel := namespace.Labels[tenantv1alpha1.WorkspaceLabel]
 	if hasWorkspaceLabel || k8sutil.IsControlledBy(namespace.OwnerReferences, tenantv1alpha1.ResourceKindWorkspace, "") {
 		ns := namespace.DeepCopy()
