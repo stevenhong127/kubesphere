@@ -176,7 +176,7 @@ func (r *Reconciler) bindWorkspace(ctx context.Context, logger logr.Logger, name
 
 func (r *Reconciler) unbindWorkspace(ctx context.Context, logger logr.Logger, namespace *corev1.Namespace, workspace *tenantv1alpha1.Workspace) error {
 	_, hasWorkspaceLabel := namespace.Labels[tenantv1alpha1.WorkspaceLabel]
-	if hasWorkspaceLabel || k8sutil.IsControlledBy(namespace.OwnerReferences, tenantv1alpha1.ResourceKindWorkspace, "") {
+	if hasWorkspaceLabel || k8sutil.IsControlledBy(namespace.OwnerReferences, tenantv1alpha1.ResourceKindWorkspace, workspace.Name) {
 		ns := namespace.DeepCopy()
 
 		wsName := k8sutil.GetWorkspaceOwnerName(ns.OwnerReferences)
