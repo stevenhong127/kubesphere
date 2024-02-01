@@ -112,7 +112,8 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 					if kubefedManaged {
 						continue
 					}
-					// managed by workspace
+
+					// unbind from workspace
 					if err := r.unbindWorkspace(rootCtx, logger, &namespace, workspace); err != nil {
 						return ctrl.Result{}, err
 					}
