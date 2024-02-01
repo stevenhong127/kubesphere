@@ -101,6 +101,24 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	} else {
 		// The object is being deleted
 		if sliceutil.HasString(workspace.ObjectMeta.Finalizers, finalizer) {
+			var namespaces corev1.NamespaceList
+			if err := r.List(rootCtx, &namespaces, client.MatchingLabels{tenantv1alpha1.WorkspaceLabel: req.Name}); err != nil {
+				logger.Error(err, "list namespaces failed")
+				return ctrl.Result{}, err
+			} else {
+				for _, namespace := range namespaces.Items {
+					// managed by kubefed-controller-manager
+					kubefedManaged := namespace.Labels[constants.KubefedManagedLabel] == "true"
+					if kubefedManaged {
+						continue
+					}
+					// managed by workspace
+					if err := r.unbindWorkspace(rootCtx, logger, &namespace, workspace); err != nil {
+						return ctrl.Result{}, err
+					}
+				}
+			}
+
 			// remove our finalizer from the list and update it.
 			workspace.ObjectMeta.Finalizers = sliceutil.RemoveString(workspace.ObjectMeta.Finalizers, func(item string) bool {
 				return item == finalizer
@@ -153,5 +171,43 @@ func (r *Reconciler) bindWorkspace(ctx context.Context, logger logr.Logger, name
 			return err
 		}
 	}
+	return nil
+}
+
+func (r *Reconciler) unbindWorkspace(ctx context.Context, logger logr.Logger, namespace *corev1.Namespace, workspace *tenantv1alpha1.Workspace) error {
+	if !metav1.IsControlledBy(namespace, workspace) {
+		namespace := namespace.DeepCopy()
+		namespace.OwnerReferences = k8sutil.RemoveWorkspaceOwnerReference(namespace.OwnerReferences)
+		if err := controllerutil.SetControllerReference(workspace, namespace, scheme.Scheme); err != nil {
+			logger.Error(err, "set controller reference failed")
+			return err
+		}
+		logger.V(4).Info("update namespace owner reference", "workspace", workspace.Name)
+		if err := r.Update(ctx, namespace); err != nil {
+			logger.Error(err, "update namespace failed")
+			return err
+		}
+
+		return nil
+	}
+
+	_, hasWorkspaceLabel := namespace.Labels[tenantv1alpha1.WorkspaceLabel]
+	if hasWorkspaceLabel || k8sutil.IsControlledBy(namespace.OwnerReferences, tenantv1alpha1.ResourceKindWorkspace, "") {
+		ns := namespace.DeepCopy()
+
+		wsName := k8sutil.GetWorkspaceOwnerName(ns.OwnerReferences)
+		if hasWorkspaceLabel {
+			wsName = namespace.Labels[tenantv1alpha1.WorkspaceLabel]
+		}
+
+		delete(ns.Labels, constants.WorkspaceLabelKey)
+		ns.OwnerReferences = k8sutil.RemoveWorkspaceOwnerReference(ns.OwnerReferences)
+		logger.V(4).Info("remove owner reference and label", "namespace", ns.Name, "workspace", wsName)
+		if err := r.Update(ctx, ns); err != nil {
+			logger.Error(err, "update owner reference failed")
+			return err
+		}
+	}
+
 	return nil
 }
