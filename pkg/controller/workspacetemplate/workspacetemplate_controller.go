@@ -484,8 +484,9 @@ func (r *Reconciler) deleteNamespacesInWorkspace(ctx context.Context, logger log
 	}
 
 	for _, namespace := range namespaceList.Items {
+
 		// for safety, we do nothing
-		logger.Info("deleteNamespacesInWorkspace request", "templateNamespace", template.Namespace, "templateName", template.Name, "tobeDeleteNamespace", namespace)
+		logger.Info("deleteNamespacesInWorkspace request", "templateNamespace", template.Namespace, "templateName", template.Name, "tobeDeleteNamespace", namespace.Name)
 
 		//err = r.Client.Delete(ctx, &namespace)
 		//if err != nil {
