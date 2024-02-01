@@ -114,7 +114,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 				return ctrl.Result{}, err
 			}
 
-			if err := r.deleteWorkspace(ctx, workspaceTemplate); err != nil {
+			if err := r.deleteWorkspace(ctx, logger, workspaceTemplate); err != nil {
 				if errors.IsNotFound(err) {
 					logger.V(4).Info("related workspace not found")
 				} else {
@@ -250,7 +250,7 @@ func newWorkspace(template *tenantv1alpha2.WorkspaceTemplate) (*tenantv1alpha1.W
 	return workspace, nil
 }
 
-func (r *Reconciler) deleteWorkspace(ctx context.Context, template *tenantv1alpha2.WorkspaceTemplate) error {
+func (r *Reconciler) deleteWorkspace(ctx context.Context, logger logr.Logger, template *tenantv1alpha2.WorkspaceTemplate) error {
 	if r.MultiClusterEnabled {
 		federatedWorkspace := &typesv1beta1.FederatedWorkspace{}
 		if err := r.Client.Get(ctx, types.NamespacedName{Name: template.Name}, federatedWorkspace); err != nil {
@@ -273,7 +273,7 @@ func (r *Reconciler) deleteWorkspace(ctx context.Context, template *tenantv1alph
 			// if the cluster is not be granted or kubefed-controller-manager is unavailable,
 			// this will cause the federated namespace left an orphan object in host cluster.
 			// After workspaceTemplate deleted we need to deleted orphan namespace in host cluster directly.
-			if err := r.deleteNamespacesInWorkspace(ctx, template); err != nil {
+			if err := r.deleteNamespacesInWorkspace(ctx, logger, template); err != nil {
 				return err
 			}
 		}
@@ -476,7 +476,7 @@ func (r *Reconciler) deleteHelmRepos(ctx context.Context, ws string) error {
 }
 
 // deleteNamespacesInWorkspace Deletes the namespace associated with the workspace, which match the workspace label selector
-func (r *Reconciler) deleteNamespacesInWorkspace(ctx context.Context, template *tenantv1alpha2.WorkspaceTemplate) error {
+func (r *Reconciler) deleteNamespacesInWorkspace(ctx context.Context, logger logr.Logger, template *tenantv1alpha2.WorkspaceTemplate) error {
 	namespaceList := &corev1.NamespaceList{}
 	err := r.Client.List(ctx, namespaceList, client.MatchingLabels{tenantv1alpha1.WorkspaceLabel: template.Name})
 	if err != nil {
@@ -484,11 +484,15 @@ func (r *Reconciler) deleteNamespacesInWorkspace(ctx context.Context, template *
 	}
 
 	for _, namespace := range namespaceList.Items {
-		err = r.Client.Delete(ctx, &namespace)
-		if err != nil {
-			return err
-		}
+		// for safety, we do nothing
+		logger.Info("deleteNamespacesInWorkspace request, workspaceTemplate %v/%v , namespace %v", template.Namespace, template.Name, namespace)
+
+		//err = r.Client.Delete(ctx, &namespace)
+		//if err != nil {
+		//	return err
+		//}
 	}
+
 	return nil
 }
 
