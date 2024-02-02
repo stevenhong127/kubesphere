@@ -187,19 +187,11 @@ func (h *tenantHandler) CreateNamespace(request *restful.Request, response *rest
 		return
 	}
 
-	created, err := h.tenant.CreateNamespace(workspace, &namespace)
+	err = fmt.Errorf("create namespace %v in workspace %v is forbidden", namespace.Name, workspace)
+	klog.Errorln(err)
+	api.HandleForbidden(response, request, err)
 
-	if err != nil {
-		klog.Error(err)
-		if errors.IsNotFound(err) {
-			api.HandleNotFound(response, request, err)
-			return
-		}
-		api.HandleBadRequest(response, request, err)
-		return
-	}
-
-	response.WriteEntity(created)
+	return
 }
 
 func (h *tenantHandler) CreateWorkspaceTemplate(req *restful.Request, resp *restful.Response) {
@@ -455,19 +447,6 @@ func (h *tenantHandler) DescribeNamespace(request *restful.Request, response *re
 func (h *tenantHandler) DeleteNamespace(request *restful.Request, response *restful.Response) {
 	workspaceName := request.PathParameter("workspace")
 	namespaceName := request.PathParameter("namespace")
-
-	//err := h.tenant.DeleteNamespace(workspaceName, namespaceName)
-	//
-	//if err != nil {
-	//	if errors.IsNotFound(err) {
-	//		api.HandleNotFound(response, request, err)
-	//		return
-	//	}
-	//	api.HandleInternalError(response, request, err)
-	//	return
-	//}
-	//
-	//response.WriteEntity(servererr.None)
 
 	err := fmt.Errorf("cannot delete namespace %v in workspace %v", namespaceName, workspaceName)
 	klog.Errorln(err)
