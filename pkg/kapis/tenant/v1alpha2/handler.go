@@ -456,18 +456,24 @@ func (h *tenantHandler) DeleteNamespace(request *restful.Request, response *rest
 	workspaceName := request.PathParameter("workspace")
 	namespaceName := request.PathParameter("namespace")
 
-	err := h.tenant.DeleteNamespace(workspaceName, namespaceName)
+	//err := h.tenant.DeleteNamespace(workspaceName, namespaceName)
+	//
+	//if err != nil {
+	//	if errors.IsNotFound(err) {
+	//		api.HandleNotFound(response, request, err)
+	//		return
+	//	}
+	//	api.HandleInternalError(response, request, err)
+	//	return
+	//}
+	//
+	//response.WriteEntity(servererr.None)
 
-	if err != nil {
-		if errors.IsNotFound(err) {
-			api.HandleNotFound(response, request, err)
-			return
-		}
-		api.HandleInternalError(response, request, err)
-		return
-	}
+	err := fmt.Errorf("cannot delete namespace %v in workspace %v", namespaceName, workspaceName)
+	klog.Errorln(err)
+	api.HandleForbidden(response, request, err)
 
-	response.WriteEntity(servererr.None)
+	return
 }
 
 func (h *tenantHandler) UpdateNamespace(request *restful.Request, response *restful.Response) {
