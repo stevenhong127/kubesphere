@@ -448,7 +448,7 @@ func (h *tenantHandler) DeleteNamespace(request *restful.Request, response *rest
 	workspaceName := request.PathParameter("workspace")
 	namespaceName := request.PathParameter("namespace")
 
-	err := fmt.Errorf("create namespace %v in workspace %v is forbidden", namespaceName, workspaceName)
+	err := fmt.Errorf("delete namespace %v in workspace %v is forbidden", namespaceName, workspaceName)
 	klog.Errorln(err)
 	api.HandleForbidden(response, request, err)
 
