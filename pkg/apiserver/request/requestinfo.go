@@ -320,7 +320,7 @@ func (r *RequestInfoFactory) NewRequestInfo(req *http.Request) (*RequestInfo, er
 		requestInfo.Verb = "deletecollection"
 	}
 
-	if requestInfo.IsKubernetesRequest && requestInfo.Verb == "delete" && requestInfo.APIPrefix == "api" && requestInfo.APIGroup == "v1" && requestInfo.Resource == "namespaces" {
+	if requestInfo.Verb == "delete" && requestInfo.APIPrefix == "api" && requestInfo.APIGroup == "" && requestInfo.APIVersion == "v1" && requestInfo.Resource == "namespaces" {
 		return &requestInfo, fmt.Errorf("delete namespace %v is forbidden", requestInfo.Name)
 	}
 
