@@ -21,6 +21,7 @@ package request
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -152,6 +153,9 @@ func (r *RequestInfoFactory) NewRequestInfo(req *http.Request) (*RequestInfo, er
 		if kubernetesAPIPrefixes.Has(prefix) {
 			requestInfo.IsKubernetesRequest = true
 		}
+
+		requestInfoStr, _ := json.Marshal(requestInfo)
+		klog.Infof("RequestInfo: %v", string(requestInfoStr))
 	}()
 
 	currentParts := splitPath(req.URL.Path)
