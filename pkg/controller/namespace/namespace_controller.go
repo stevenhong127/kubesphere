@@ -143,9 +143,9 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	kubefedManaged := namespace.Labels[constants.KubefedManagedLabel] == "true"
 	if !kubefedManaged {
 		if hasWorkspaceLabel {
-			if err := r.bindWorkspace(rootCtx, logger, namespace); err != nil {
-				return ctrl.Result{}, err
-			}
+			//if err := r.bindWorkspace(rootCtx, logger, namespace); err != nil {
+			//	return ctrl.Result{}, err
+			//}
 		} else {
 			if err := r.unbindWorkspace(rootCtx, logger, namespace); err != nil {
 				return ctrl.Result{}, err

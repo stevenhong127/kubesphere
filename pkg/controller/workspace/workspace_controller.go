@@ -147,9 +147,9 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 				continue
 			}
 			// managed by workspace
-			if err := r.bindWorkspace(rootCtx, logger, &namespace, workspace); err != nil {
-				return ctrl.Result{}, err
-			}
+			//if err := r.bindWorkspace(rootCtx, logger, &namespace, workspace); err != nil {
+			//	return ctrl.Result{}, err
+			//}
 		}
 	}
 
